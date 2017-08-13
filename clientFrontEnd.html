@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Score Board</title>
+		<style>
+			section{
+				border: 2px solid black;
+				border-radius: 13px;
+				align-self:center;
+				width:800px;
+				height:400px;
+				left=50%;
+				margin-top: 30px;
+				margin-left: 250px;
+			}
+			p.serif {
+				font-family: Tahoma, Geneva, sans-serif;
+				font-size: 20px;
+			}
+			#heading{
+				border-top-right-radius: 13px;
+				border-top-left-radius: 13px;
+				background-color: #d6d6d6;
+				padding: 10px;
+				margin-top: 1px;
+				margin-bottom: 15px;
+				text-align: center;
+				color: #9E2D08;
+			}
+			div{
+				margin: 10px;
+				padding-left: 10px;
+				padding-top: 10px;
+			}
+			#btns{
+				margin: auto;
+				width: 60%;
+				height: 100px;
+				padding-left: 70px;
+			}
+			#TINbutton{
+				align-self:center;
+				height: 80px;
+				width: 200px;
+				background-color: #00cc44;
+			}
+			#TOUTbutton{
+				align-self:center;
+				height: 80px;
+				width: 200px;
+				background-color: #ff3333;
+			}
+			#Score, #Comment{
+				display: inline;
+			}
+		</style>
+		<script>
+			var connection
+
+			function tunein(event) {
+				//console.log("submit form clicked");
+				var tuneinCmd = "tunein";
+				connection = new WebSocket("ws://"+"localhost"+":8081")
+				connection.onopen = function () {
+					console.log("Connection opened")
+					//var obj = {tuneinCmd}
+					//console.log(tuneinCmd);
+					connection.send(tuneinCmd)
+					document.getElementById("TINbutton").disabled = true;
+					document.getElementById("TOUTbutton").disabled = false;
+				}
+				connection.onmessage = function (event) {
+					
+					var obj = JSON.parse(event.data)
+					console.log(JSON.stringify(obj))
+					var str = "";
+					str += obj["score"] + " runs --- "+ obj["over"]+"."+obj["ball"]+" Overs"; 
+					document.getElementById("Score").innerHTML = str;
+					document.getElementById("Comment").innerHTML = obj["comment"];
+				}
+				event.preventDefault()
+				return false;
+			}
+
+			function tuneout(event) {
+				connection.onclose = function () {
+					console.log("Connection closed");
+					document.getElementById("TOUTbutton").disabled = true;
+					document.getElementById("TINbutton").disabled = false;
+					document.getElementById("Score").innerHTML = "";
+					document.getElementById("Comment").innerHTML = "";
+				}
+				connection.close();
+				return false;
+			}
+		</script>
+	</head>
+
+	<body>
+		<form id="form1" onsubmit="return tunein(event);" onreset="return tuneout(event);">
+			<section>
+				<h1 id="heading"> Live Score </h1>
+				<div>
+					<h2> Live Sporting Event: Cricket match </h2>
+				</div>
+				<h3>
+					<div>
+						Current Score: 
+						<div id="Score">  </div>
+					</div>
+					<br>
+					<div>
+						Commentator: 
+						<div id="Comment"> </div>
+					</div>
+					<br>
+					<div id="btns">
+						<input type="submit" value="Tune In" id="TINbutton">
+						&nbsp; &nbsp; &nbsp; &nbsp; 
+						<input type="reset" value="Tune Out" id="TOUTbutton" disabled>
+					</div>
+				</h3>
+			</section>
+		</form>
+	</body>
+</html>
